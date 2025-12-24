@@ -62,7 +62,7 @@ FRONTEND_URL=http://localhost:3000
 
 ### Step 2: Get API Keys (5 minutes - all free)
 
-**NewsAPI** (covers NewsAPI, BBC, OpenNews):
+**NewsAPI** (covers NewsAPI and BBC News):
 - https://newsapi.org/ → Sign up → Get key → Add to .env
 
 **The Guardian**:

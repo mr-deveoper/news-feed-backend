@@ -68,11 +68,17 @@ class NyTimesApiClient implements NewsApiClientInterface
     private function normalizeArticles(array $articles): array
     {
         return array_map(function ($article) {
-            $multimedia = $article['multimedia'] ?? [];
+            $multimedia = $article['multimedia'] ?? null;
             $imageUrl = null;
 
-            if (! empty($multimedia)) {
-                $imageUrl = 'https://www.nytimes.com/'.$multimedia[0]['url'];
+            // NY Times API returns multimedia as an object with 'default' and 'thumbnail' properties
+            if ($multimedia && is_array($multimedia)) {
+                // Prefer 'default' image (larger, better quality), fallback to 'thumbnail'
+                if (isset($multimedia['default']['url'])) {
+                    $imageUrl = $multimedia['default']['url'];
+                } elseif (isset($multimedia['thumbnail']['url'])) {
+                    $imageUrl = $multimedia['thumbnail']['url'];
+                }
             }
 
             $byline = $article['byline']['original'] ?? 'New York Times';

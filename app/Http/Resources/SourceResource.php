@@ -27,8 +27,8 @@ class SourceResource extends JsonResource
             'url' => $this->url,
             'description' => $this->description,
             'is_active' => $this->is_active,
-            'created_at' => $this->created_at->toISOString(),
-            'updated_at' => $this->updated_at->toISOString(),
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
 
             // Count of articles if loaded
             'articles_count' => $this->when(

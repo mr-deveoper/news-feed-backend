@@ -23,11 +23,19 @@ class DatabaseSeeder extends Seeder
         $this->command->info('Seeding categories...');
         $this->seedCategories();
 
-        $this->command->info('Seeding users...');
-        $this->seedUsers();
+        // Only seed test users and articles if no API keys are configured
+        $hasApiKey = ! empty(config('services.newsapi.api_key')) ||
+                     ! empty(config('services.guardian.api_key')) ||
+                     ! empty(config('services.nytimes.api_key'));
 
-        $this->command->info('Seeding test articles...');
-        $this->seedTestArticles();
+        if (! $hasApiKey) {
+            $this->command->info('No API keys found. Seeding test users and articles...');
+            $this->seedUsers();
+            $this->seedTestArticles();
+        } else {
+            $this->command->info('API keys detected. Skipping test data.');
+            $this->command->info('Run "php artisan news:fetch" to fetch real articles.');
+        }
 
         $this->command->info('Database seeded successfully!');
     }
@@ -68,14 +76,6 @@ class DatabaseSeeder extends Seeder
                 'api_identifier' => 'bbc-news',
                 'url' => 'https://www.bbc.com/news',
                 'description' => 'BBC News - trusted news source',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'OpenNews',
-                'slug' => 'opennews',
-                'api_identifier' => 'opennews',
-                'url' => 'https://www.opennews.org',
-                'description' => 'Open news from various sources',
                 'is_active' => true,
             ],
         ];

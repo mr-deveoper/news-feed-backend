@@ -1,19 +1,19 @@
 # News Aggregator Backend API
 
-A comprehensive Laravel 11 backend API for a news aggregator application that fetches articles from **5 major news sources** (NewsAPI, The Guardian, New York Times, BBC News, OpenNews) and provides personalized news feeds to users.
+A Laravel 11 backend API for a news aggregator application that fetches articles from 4 major news sources (NewsAPI, The Guardian, New York Times, BBC News) and provides personalized news feeds to users.
 
 ## Features
 
-✅ **Multi-Source News Aggregation**: Automatically fetches news from **5 major sources**  
-✅ **User Authentication**: Register, login, password reset with Laravel Sanctum  
-✅ **Personalized Feeds**: Users can customize news by sources, categories, and authors  
-✅ **Advanced Search & Filtering**: Search by keyword, filter by date, source, category, author  
-✅ **Redis Caching**: Optimized performance with intelligent caching  
-✅ **Repository Pattern**: Clean architecture with repositories and services  
-✅ **Scheduled Tasks**: Automated hourly news fetching  
-✅ **Comprehensive Tests**: 21 feature tests, all passing ✅  
-✅ **Fully Dockerized**: Complete docker-compose setup  
-✅ **API Documentation**: Postman collection + comprehensive docs  
+- **Multi-Source News Aggregation**: Fetches news from 4 major sources
+- **User Authentication**: Register, login, password reset with Laravel Sanctum
+- **Personalized Feeds**: Users can customize news by sources, categories, and authors
+- **Advanced Search & Filtering**: Search by keyword, filter by date, source, category, author
+- **Redis Caching**: Performance optimization with intelligent caching
+- **Repository Pattern**: Clean architecture with repositories and services
+- **Scheduled Tasks**: Automated hourly news fetching
+- **Comprehensive Tests**: Feature tests covering all endpoints
+- **Fully Dockerized**: Complete docker-compose setup
+- **API Documentation**: Postman collection and comprehensive API docs
 
 ## Tech Stack
 
@@ -26,18 +26,16 @@ A comprehensive Laravel 11 backend API for a news aggregator application that fe
 - **Testing**: Pest PHP
 - **Containerization**: Docker & Docker Compose
 
-## 🐳 Quick Start with Docker (Recommended)
+## Quick Start with Docker
 
 ### Prerequisites
 - Docker Desktop installed and running
-- That's it! Everything else is in containers.
 
 ### Step 1: Configure Environment
 
 Create a `.env` file in the project root:
 
 ```env
-# Copy from ENV_TEMPLATE.md or use these settings:
 APP_NAME="News Aggregator API"
 APP_ENV=local
 APP_DEBUG=true
@@ -55,7 +53,7 @@ CACHE_STORE=redis
 QUEUE_CONNECTION=redis
 REDIS_HOST=redis
 
-# News API Keys (get free keys from links below)
+# News API Keys
 NEWS_API_KEY=your_newsapi_key_here
 GUARDIAN_API_KEY=your_guardian_key_here
 NYTIMES_API_KEY=your_nytimes_key_here
@@ -67,7 +65,7 @@ FRONTEND_URL=http://localhost:3000
 ### Step 2: Start Docker Containers
 
 ```bash
-# Start all services (app, nginx, mysql, redis, queue, scheduler)
+# Start all services
 docker-compose up -d
 
 # Wait for containers to be ready (~30 seconds)
@@ -86,7 +84,7 @@ docker-compose exec app php artisan key:generate
 # Run database migrations and seed initial data
 docker-compose exec app php artisan migrate:fresh --seed
 
-# Fetch news articles from all 5 sources
+# Fetch news articles from all sources
 docker-compose exec app php artisan news:fetch
 
 # Run tests to verify everything works
@@ -95,36 +93,11 @@ docker-compose exec app php artisan test
 
 ### Step 4: Verify
 
-✅ **API Running**: http://localhost:8000  
-✅ **Test Endpoint**: http://localhost:8000/api/articles  
-✅ **Health Check**: http://localhost:8000/up  
+- **API Running**: http://localhost:8000
+- **Test Endpoint**: http://localhost:8000/api/articles
+- **Health Check**: http://localhost:8000/up
 
-**All tests should pass**: `Tests: 21 passed (117 assertions)` ✅
-
----
-
-##  Postman Collection
-
-https://documenter.getpostman.com/view/31653907/2sBXVZnuNX  
-
----
-
-## 🎯 Docker Services
-
-Your `docker-compose up` command starts **6 containers**:
-
-| Service | Purpose | Port |
-|---------|---------|------|
-| **app** | Laravel application (PHP 8.3-FPM) | - |
-| **nginx** | Web server | 8000 |
-| **mysql** | Database (MySQL 8.0) | 3306 |
-| **redis** | Cache & Queue | 6379 |
-| **queue** | Background job worker | - |
-| **scheduler** | Automated news fetching (hourly) | - |
-
-**Everything runs automatically in Docker!** No local PHP, MySQL, or Redis installation needed.
-
-## 🔑 Getting Free API Keys
+## Getting API Keys
 
 You need API keys from these services (all have free tiers):
 
@@ -133,14 +106,13 @@ You need API keys from these services (all have free tiers):
 - Sign up for free account
 - Get instant API key
 - Add to `.env`: `NEWS_API_KEY=your_key`
-- **Used for**: NewsAPI, BBC News, OpenNews sources
+- **Used for**: NewsAPI and BBC News sources
 
 ### 2. The Guardian (Free - Instant)
 - Visit: https://open-platform.theguardian.com/access/
 - Register for developer key
 - Instant approval
 - Add to `.env`: `GUARDIAN_API_KEY=your_key`
-- **Used for**: The Guardian source
 
 ### 3. New York Times (Free Tier - Instant)
 - Visit: https://developer.nytimes.com/get-started
@@ -148,11 +120,10 @@ You need API keys from these services (all have free tiers):
 - Register app and enable "Article Search API"
 - Get API key
 - Add to `.env`: `NYTIMES_API_KEY=your_key`
-- **Used for**: NY Times source
 
 **Total Time**: ~5-10 minutes to get all 3 keys  
 **Cost**: $0 (all free tiers)  
-**Coverage**: Access to **5 news sources** with just 3 API keys!
+**Coverage**: Access to 4 news sources with 3 API keys
 
 ## API Endpoints
 
@@ -313,7 +284,7 @@ docker/                        # Docker Configuration
 
 ## Architecture
 
-This project follows **SOLID principles** and implements:
+This project follows SOLID principles and implements:
 
 - **Repository Pattern**: Data access abstraction
 - **Service Layer**: Business logic separation
@@ -323,20 +294,20 @@ This project follows **SOLID principles** and implements:
 
 ## Performance Optimizations
 
-✅ **Caching**: Articles, feeds, categories cached with Redis  
-✅ **Eager Loading**: Relationships loaded efficiently  
-✅ **Database Indexes**: Strategic indexing for common queries  
-✅ **Full-Text Search**: MySQL full-text index on articles  
-✅ **Pagination**: All list endpoints paginated  
+- **Caching**: Articles, feeds, categories cached with Redis
+- **Eager Loading**: Relationships loaded efficiently
+- **Database Indexes**: Strategic indexing for common queries
+- **Full-Text Search**: MySQL full-text index on articles
+- **Pagination**: All list endpoints paginated
 
 ## Security Features
 
-✅ **Authentication**: Laravel Sanctum token-based auth  
-✅ **Validation**: Form Request validation on all inputs  
-✅ **Sanitization**: XSS protection via Laravel escaping  
-✅ **CORS**: Configured for cross-origin requests  
-✅ **Rate Limiting**: API rate limiting enabled  
-✅ **Password Hashing**: Bcrypt hashing  
+- **Authentication**: Laravel Sanctum token-based auth
+- **Validation**: Form Request validation on all inputs
+- **Sanitization**: XSS protection via Laravel escaping
+- **CORS**: Configured for cross-origin requests
+- **Rate Limiting**: API rate limiting enabled
+- **Password Hashing**: Bcrypt hashing
 
 ## Troubleshooting
 
@@ -374,7 +345,7 @@ docker-compose logs -f app
 docker-compose exec app php artisan [command]
 
 # Access MySQL
-docker-compose exec mysql mysql -u root -p
+docker-compose exec mysql mysql -u news_user -psecret news_feed
 
 # Rebuild containers
 docker-compose up -d --build
@@ -387,26 +358,26 @@ Key environment variables in `.env`:
 ```env
 DB_CONNECTION=mysql
 DB_DATABASE=news_feed
-DB_USERNAME=root
-DB_PASSWORD=
+DB_USERNAME=news_user
+DB_PASSWORD=secret
 
 NEWS_API_KEY=your_key
 GUARDIAN_API_KEY=your_key
 NYTIMES_API_KEY=your_key
 
-CACHE_STORE=redis  # or file/database
-QUEUE_CONNECTION=redis  # or database/sync
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
 
 FRONTEND_URL=http://localhost:3000
 ```
 
-## Contributing
+## Documentation
 
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+- **API Documentation**: See `API_DOCUMENTATION.md`
+- **Docker Guide**: See `DOCKER_GUIDE.md`
+- **Deployment Guide**: See `DEPLOYMENT_GUIDE.md`
+- **Quick Start**: See `QUICKSTART.md`
+- **Environment Setup**: See `ENV_TEMPLATE.md`
 
 ## License
 
@@ -419,10 +390,6 @@ For issues and questions:
 - Review test files for examples
 - Check logs: `storage/logs/laravel.log`
 - Review Laravel documentation: https://laravel.com/docs
-
-## Credits
-
-Built with ❤️ using Laravel 11
 
 **APIs Used:**
 - NewsAPI.org

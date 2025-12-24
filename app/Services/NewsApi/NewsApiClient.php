@@ -30,12 +30,13 @@ class NewsApiClient implements NewsApiClientInterface
     public function fetchArticles(array $params = []): array
     {
         try {
-            $response = $this->httpClient->get(self::BASE_URL.'everything', [
+            // Use top-headlines endpoint for variety of articles from various sources
+            $response = $this->httpClient->get(self::BASE_URL.'top-headlines', [
                 'query' => array_merge([
                     'apiKey' => $this->apiKey,
                     'language' => 'en',
                     'pageSize' => 100,
-                    'sortBy' => 'publishedAt',
+                    'country' => 'us',
                 ], $params),
             ]);
 
@@ -77,8 +78,9 @@ class NewsApiClient implements NewsApiClientInterface
                 'url' => $article['url'] ?? '',
                 'image_url' => $article['urlToImage'] ?? null,
                 'published_at' => $article['publishedAt'] ?? null,
-                'author_name' => $article['author'] ?? 'Unknown',
+                'author_name' => $article['author'] ?? 'NewsAPI',
                 'source_name' => $article['source']['name'] ?? 'NewsAPI',
+                'category' => 'General',
             ];
         }, $articles);
     }

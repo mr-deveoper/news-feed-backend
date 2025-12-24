@@ -36,10 +36,6 @@ class NewsApiFactory
                 $httpClient,
                 config('services.newsapi.api_key') // BBC uses NewsAPI
             ),
-            'opennews' => new OpenNewsApiClient(
-                $httpClient,
-                config('services.newsapi.api_key') // OpenNews uses NewsAPI
-            ),
             default => null,
         };
     }
@@ -53,7 +49,7 @@ class NewsApiFactory
     {
         $clients = [];
 
-        foreach (['newsapi', 'the-guardian', 'nytimes', 'bbc-news', 'opennews'] as $source) {
+        foreach (['newsapi', 'the-guardian', 'nytimes', 'bbc-news'] as $source) {
             $client = self::create($source);
 
             if ($client) {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,7 +28,7 @@ use Illuminate\Support\Str;
 class Article extends Model
 {
     /** @use HasFactory<\Database\Factories\ArticleFactory> */
-    use HasFactory;
+    use Filterable, HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -100,103 +101,5 @@ class Article extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class);
-    }
-
-    /**
-     * Scope a query to search articles by keyword.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
-     * @return \Illuminate\Database\Eloquent\Builder<Article>
-     */
-    public function scopeSearch($query, ?string $keyword)
-    {
-        if (empty($keyword)) {
-            return $query;
-        }
-
-        // Use fulltext search for MySQL, fallback to LIKE for others (SQLite in tests)
-        if (config('database.default') === 'mysql') {
-            return $query->where(function ($q) use ($keyword) {
-                $q->whereFullText(['title', 'description', 'content'], $keyword)
-                    ->orWhere('title', 'like', "%{$keyword}%")
-                    ->orWhere('description', 'like', "%{$keyword}%");
-            });
-        }
-
-        // Fallback search using LIKE for SQLite and other databases
-        return $query->where(function ($q) use ($keyword) {
-            $q->where('title', 'like', "%{$keyword}%")
-                ->orWhere('description', 'like', "%{$keyword}%")
-                ->orWhere('content', 'like', "%{$keyword}%");
-        });
-    }
-
-    /**
-     * Scope a query to filter by date range.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
-     * @return \Illuminate\Database\Eloquent\Builder<Article>
-     */
-    public function scopeDateRange($query, ?string $from, ?string $to)
-    {
-        if ($from) {
-            $query->where('published_at', '>=', $from);
-        }
-
-        if ($to) {
-            $query->where('published_at', '<=', $to);
-        }
-
-        return $query;
-    }
-
-    /**
-     * Scope a query to filter by source.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
-     * @param  array<int>|null  $sourceIds
-     * @return \Illuminate\Database\Eloquent\Builder<Article>
-     */
-    public function scopeBySource($query, ?array $sourceIds)
-    {
-        if (empty($sourceIds)) {
-            return $query;
-        }
-
-        return $query->whereIn('source_id', $sourceIds);
-    }
-
-    /**
-     * Scope a query to filter by category.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
-     * @param  array<int>|null  $categoryIds
-     * @return \Illuminate\Database\Eloquent\Builder<Article>
-     */
-    public function scopeByCategory($query, ?array $categoryIds)
-    {
-        if (empty($categoryIds)) {
-            return $query;
-        }
-
-        return $query->whereHas('categories', function ($q) use ($categoryIds) {
-            $q->whereIn('categories.id', $categoryIds);
-        });
-    }
-
-    /**
-     * Scope a query to filter by author.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder<Article>  $query
-     * @param  array<int>|null  $authorIds
-     * @return \Illuminate\Database\Eloquent\Builder<Article>
-     */
-    public function scopeByAuthor($query, ?array $authorIds)
-    {
-        if (empty($authorIds)) {
-            return $query;
-        }
-
-        return $query->whereIn('author_id', $authorIds);
     }
 }

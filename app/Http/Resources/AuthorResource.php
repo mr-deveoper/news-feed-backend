@@ -25,8 +25,8 @@ class AuthorResource extends JsonResource
             'email' => $this->email,
             'bio' => $this->bio,
             'avatar_url' => $this->avatar_url,
-            'created_at' => $this->created_at->toISOString(),
-            'updated_at' => $this->updated_at->toISOString(),
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
 
             // Count of articles if loaded
             'articles_count' => $this->when(

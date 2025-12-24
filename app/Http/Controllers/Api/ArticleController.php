@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Article\PersonalizedFeedRequest;
+use App\Http\Requests\Article\SearchArticleRequest;
 use App\Http\Resources\ArticleResource;
 use App\Services\ArticleService;
 use Illuminate\Http\JsonResponse;
@@ -22,26 +24,20 @@ class ArticleController extends Controller
 
     /**
      * Display a listing of articles with search and filters
+     *
+     * Supports filtering by:
+     * - Keyword (searches title, description, content)
+     * - Date range (from/to dates in Y-m-d format)
+     * - Sources (array of source IDs)
+     * - Categories (array of category IDs)
+     * - Authors (array of author IDs)
+     * - Sorting (by published_at, created_at, or title)
+     * - Pagination (per_page: 1-100, default: 15)
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(SearchArticleRequest $request): AnonymousResourceCollection
     {
-        // Validate query parameters
-        $validated = $request->validate([
-            'keyword' => ['sometimes', 'string', 'max:255'],
-            'from' => ['sometimes', 'date'],
-            'to' => ['sometimes', 'date', 'after_or_equal:from'],
-            'source_ids' => ['sometimes', 'array'],
-            'source_ids.*' => ['integer', 'exists:sources,id'],
-            'category_ids' => ['sometimes', 'array'],
-            'category_ids.*' => ['integer', 'exists:categories,id'],
-            'author_ids' => ['sometimes', 'array'],
-            'author_ids.*' => ['integer', 'exists:authors,id'],
-            'sort_by' => ['sometimes', 'in:published_at,created_at,title'],
-            'sort_order' => ['sometimes', 'in:asc,desc'],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-        ]);
-
-        $perPage = $request->get('per_page', 15);
+        $validated = $request->validated();
+        $perPage = $validated['per_page'] ?? 15;
         $articles = $this->articleService->getArticles($validated, $perPage);
 
         return ArticleResource::collection($articles);
@@ -71,12 +67,14 @@ class ArticleController extends Controller
 
     /**
      * Get personalized news feed for authenticated user
+     *
+     * Returns articles filtered by user's preferred sources, categories, and authors.
+     * Users can customize their preferences via the /api/preferences endpoints.
      */
-    public function personalizedFeed(Request $request): AnonymousResourceCollection
+    public function personalizedFeed(PersonalizedFeedRequest $request): AnonymousResourceCollection
     {
-        $perPage = $request->validate([
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-        ])['per_page'] ?? 15;
+        $validated = $request->validated();
+        $perPage = $validated['per_page'] ?? 15;
 
         $articles = $this->articleService->getPersonalizedFeed($request->user()->id, $perPage);
 

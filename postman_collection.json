@@ -177,36 +177,6 @@
 								{
 									"key": "per_page",
 									"value": "15"
-								},
-								{
-									"key": "keyword",
-									"value": "technology",
-									"disabled": true
-								},
-								{
-									"key": "from",
-									"value": "2024-01-01",
-									"disabled": true
-								},
-								{
-									"key": "to",
-									"value": "2024-12-31",
-									"disabled": true
-								},
-								{
-									"key": "source_ids[]",
-									"value": "1",
-									"disabled": true
-								},
-								{
-									"key": "category_ids[]",
-									"value": "1",
-									"disabled": true
-								},
-								{
-									"key": "author_ids[]",
-									"value": "1",
-									"disabled": true
 								}
 							]
 						}
@@ -229,6 +199,90 @@
 								{
 									"key": "per_page",
 									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Articles by Date",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/articles?from=2024-12-01&to=2024-12-31&per_page=15",
+							"host": ["{{base_url}}"],
+							"path": ["api", "articles"],
+							"query": [
+								{
+									"key": "from",
+									"value": "2024-12-01",
+									"description": "Start date (Y-m-d format)"
+								},
+								{
+									"key": "to",
+									"value": "2024-12-31",
+									"description": "End date (Y-m-d format)"
+								},
+								{
+									"key": "per_page",
+									"value": "15"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Articles (All Filters)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/articles?keyword=technology&from=2024-12-01&to=2024-12-31&source_ids[]=1&source_ids[]=2&category_ids[]=1&author_ids[]=1&sort_by=published_at&sort_order=desc&per_page=20",
+							"host": ["{{base_url}}"],
+							"path": ["api", "articles"],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "technology"
+								},
+								{
+									"key": "from",
+									"value": "2024-12-01",
+									"description": "Start date (Y-m-d format)"
+								},
+								{
+									"key": "to",
+									"value": "2024-12-31",
+									"description": "End date (Y-m-d format)"
+								},
+								{
+									"key": "source_ids[]",
+									"value": "1"
+								},
+								{
+									"key": "source_ids[]",
+									"value": "2"
+								},
+								{
+									"key": "category_ids[]",
+									"value": "1"
+								},
+								{
+									"key": "author_ids[]",
+									"value": "1"
+								},
+								{
+									"key": "sort_by",
+									"value": "published_at"
+								},
+								{
+									"key": "sort_order",
+									"value": "desc"
+								},
+								{
+									"key": "per_page",
+									"value": "20"
 								}
 							]
 						}

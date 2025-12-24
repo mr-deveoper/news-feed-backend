@@ -25,8 +25,8 @@ class UserPreferenceResource extends JsonResource
             'preferred_sources' => $this->preferred_sources ?? [],
             'preferred_categories' => $this->preferred_categories ?? [],
             'preferred_authors' => $this->preferred_authors ?? [],
-            'created_at' => $this->created_at->toISOString(),
-            'updated_at' => $this->updated_at->toISOString(),
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
         ];
     }
 }

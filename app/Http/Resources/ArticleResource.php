@@ -28,8 +28,8 @@ class ArticleResource extends JsonResource
             'url' => $this->url,
             'image_url' => $this->image_url,
             'published_at' => $this->published_at?->toISOString(),
-            'created_at' => $this->created_at->toISOString(),
-            'updated_at' => $this->updated_at->toISOString(),
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
 
             // Relationships
             'source' => new SourceResource($this->whenLoaded('source')),

@@ -8,7 +8,6 @@ use App\Models\UserPreference;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Article Repository Implementation
@@ -37,50 +36,39 @@ class ArticleRepository extends BaseRepository implements ArticleRepositoryInter
      */
     public function searchAndFilter(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        // Cache temporarily disabled due to Redis connection timeout issues
-        // TODO: Fix Redis connection and re-enable caching for better performance
-        // Expected: First request ~8s, cached requests < 100ms
         return $this->executeSearchQuery($filters, $perPage);
     }
 
     /**
-     * Execute the search query (extracted for reuse)
+     * Execute the search query using EloquentFilter
      */
     private function executeSearchQuery(array $filters, int $perPage): LengthAwarePaginator
     {
+        // Prepare filters for EloquentFilter
+        // Remove per_page from filters as it's handled separately
+        $filterParams = $filters;
+        unset($filterParams['per_page']);
+
+        // Apply filter using EloquentFilter
         $query = $this->model->newQuery()
-            ->with(['source', 'author']);
-            // Categories loaded separately in ArticleResource to avoid N+1 performance issues
+            ->with([
+                'source' => function ($q) {
+                    $q->select('id', 'name', 'slug', 'created_at', 'updated_at');
+                },
+                'author' => function ($q) {
+                    $q->select('id', 'name', 'email', 'created_at', 'updated_at');
+                },
+            ])
+            ->filter($filterParams);
 
-        // Search by keyword
-        if (! empty($filters['keyword'])) {
-            $query->search($filters['keyword']);
-        }
-
-        // Filter by date range
-        if (! empty($filters['from']) || ! empty($filters['to'])) {
-            $query->dateRange($filters['from'] ?? null, $filters['to'] ?? null);
-        }
-
-        // Filter by source
-        if (! empty($filters['source_ids'])) {
-            $query->bySource($filters['source_ids']);
-        }
-
-        // Filter by category
-        if (! empty($filters['category_ids'])) {
-            $query->byCategory($filters['category_ids']);
-        }
-
-        // Filter by author
-        if (! empty($filters['author_ids'])) {
-            $query->byAuthor($filters['author_ids']);
-        }
-
-        // Sort by
+        // Apply default sorting if no sort_by or sort_order provided
         $sortBy = $filters['sort_by'] ?? 'published_at';
         $sortOrder = $filters['sort_order'] ?? 'desc';
-        $query->orderBy($sortBy, $sortOrder);
+
+        // Only apply if not already sorted by the filter
+        if (empty($filters['sort_by']) && empty($filters['sort_order'])) {
+            $query->orderBy($sortBy, $sortOrder);
+        }
 
         return $query->paginate($perPage);
     }
@@ -98,14 +86,14 @@ class ArticleRepository extends BaseRepository implements ArticleRepositoryInter
             $query = $this->model->newQuery()
                 ->with([
                     'source' => function ($q) {
-                        $q->select('id', 'name', 'slug');
+                        $q->select('id', 'name', 'slug', 'created_at', 'updated_at');
                     },
                     'author' => function ($q) {
-                        $q->select('id', 'name', 'email');
+                        $q->select('id', 'name', 'email', 'created_at', 'updated_at');
                     },
                     'categories' => function ($q) {
-                        $q->select('categories.id', 'categories.name', 'categories.slug');
-                    }
+                        $q->select('categories.id', 'categories.name', 'categories.slug', 'categories.created_at', 'categories.updated_at');
+                    },
                 ]);
 
             if ($preference) {
@@ -142,11 +130,11 @@ class ArticleRepository extends BaseRepository implements ArticleRepositoryInter
             return $this->model->newQuery()
                 ->with([
                     'author' => function ($q) {
-                        $q->select('id', 'name', 'email');
+                        $q->select('id', 'name', 'email', 'created_at', 'updated_at');
                     },
                     'categories' => function ($q) {
-                        $q->select('categories.id', 'categories.name', 'categories.slug');
-                    }
+                        $q->select('categories.id', 'categories.name', 'categories.slug', 'categories.created_at', 'categories.updated_at');
+                    },
                 ])
                 ->where('source_id', $sourceId)
                 ->orderBy('published_at', 'desc')
@@ -163,7 +151,17 @@ class ArticleRepository extends BaseRepository implements ArticleRepositoryInter
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($categoryId, $perPage) {
             return $this->model->newQuery()
-                ->with(['source:id,name,slug', 'author:id,name,email', 'categories:id,name,slug'])
+                ->with([
+                    'source' => function ($q) {
+                        $q->select('id', 'name', 'slug', 'created_at', 'updated_at');
+                    },
+                    'author' => function ($q) {
+                        $q->select('id', 'name', 'email', 'created_at', 'updated_at');
+                    },
+                    'categories' => function ($q) {
+                        $q->select('categories.id', 'categories.name', 'categories.slug', 'categories.created_at', 'categories.updated_at');
+                    },
+                ])
                 ->whereHas('categories', function ($q) use ($categoryId) {
                     $q->where('categories.id', $categoryId);
                 })
@@ -183,11 +181,11 @@ class ArticleRepository extends BaseRepository implements ArticleRepositoryInter
             return $this->model->newQuery()
                 ->with([
                     'source' => function ($q) {
-                        $q->select('id', 'name', 'slug');
+                        $q->select('id', 'name', 'slug', 'created_at', 'updated_at');
                     },
                     'categories' => function ($q) {
-                        $q->select('categories.id', 'categories.name', 'categories.slug');
-                    }
+                        $q->select('categories.id', 'categories.name', 'categories.slug', 'categories.created_at', 'categories.updated_at');
+                    },
                 ])
                 ->where('author_id', $authorId)
                 ->orderBy('published_at', 'desc')

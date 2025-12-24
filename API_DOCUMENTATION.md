@@ -203,22 +203,54 @@ Reset password using the token from email.
 #### 2.1 List Articles
 **GET** `/api/articles`
 
-Get a paginated list of articles with optional filters.
+Get a paginated list of articles with optional filters. Supports filtering by keyword, date range, sources, categories, and authors.
 
 **Query Parameters:**
 - `keyword` (optional): Search in title, description, content
-- `from` (optional): Start date (Y-m-d format)
-- `to` (optional): End date (Y-m-d format)
-- `source_ids[]` (optional): Array of source IDs
-- `category_ids[]` (optional): Array of category IDs
-- `author_ids[]` (optional): Array of author IDs
-- `sort_by` (optional): Field to sort by (published_at, created_at, title) - default: published_at
-- `sort_order` (optional): asc or desc - default: desc
+- `from` (optional): Start date in `Y-m-d` format (e.g., `2024-12-01`) - filters articles published on or after this date
+- `to` (optional): End date in `Y-m-d` format (e.g., `2024-12-31`) - filters articles published on or before this date. Must be equal to or after `from` date
+- `source_ids[]` (optional): Array of source IDs to filter by
+- `category_ids[]` (optional): Array of category IDs to filter by
+- `author_ids[]` (optional): Array of author IDs to filter by
+- `sort_by` (optional): Field to sort by (`published_at`, `created_at`, `title`) - default: `published_at`
+- `sort_order` (optional): `asc` or `desc` - default: `desc`
 - `per_page` (optional): Results per page (1-100) - default: 15
 
-**Example:**
+**Examples:**
+
+**Basic listing:**
 ```
-GET /api/articles?keyword=technology&category_ids[]=1&category_ids[]=2&per_page=20
+GET /api/articles?per_page=20
+```
+
+**Search by keyword:**
+```
+GET /api/articles?keyword=technology&per_page=20
+```
+
+**Filter by date range:**
+```
+GET /api/articles?from=2024-12-01&to=2024-12-31&per_page=15
+```
+
+**Filter by date (from only):**
+```
+GET /api/articles?from=2024-12-01&per_page=15
+```
+
+**Filter by date (to only):**
+```
+GET /api/articles?to=2024-12-31&per_page=15
+```
+
+**Filter by sources and categories:**
+```
+GET /api/articles?source_ids[]=1&source_ids[]=2&category_ids[]=1&per_page=20
+```
+
+**Complete example with all filters:**
+```
+GET /api/articles?keyword=technology&from=2024-12-01&to=2024-12-31&source_ids[]=1&source_ids[]=2&category_ids[]=1&author_ids[]=1&sort_by=published_at&sort_order=desc&per_page=20
 ```
 
 **Response (200):**
@@ -287,19 +319,48 @@ Get a specific article by ID.
 **GET** `/api/articles/feed/personalized`  
 🔒 **Protected**
 
-Get a personalized news feed based on user preferences.
+Get a personalized news feed based on user preferences. The feed automatically filters articles by:
+- **Preferred Sources**: Only articles from user's selected sources
+- **Preferred Categories**: Only articles in user's selected categories
+- **Preferred Authors**: Only articles by user's selected authors
+
+Users can customize their preferences using the `/api/preferences` endpoints (see User Preferences section).
 
 **Query Parameters:**
 - `per_page` (optional): Results per page (1-100) - default: 15
 
+**Example:**
+```
+GET /api/articles/feed/personalized?per_page=20
+```
+
 **Response (200):**
 ```json
 {
-    "data": [...],
+    "data": [
+        {
+            "id": 1,
+            "title": "Article Title",
+            "description": "...",
+            "source": {...},
+            "author": {...},
+            "categories": [...]
+        }
+    ],
     "links": {...},
-    "meta": {...}
+    "meta": {
+        "current_page": 1,
+        "per_page": 15,
+        "total": 50
+    }
 }
 ```
+
+**Note:** If user has no preferences set, all articles are returned. Users can update preferences via:
+- `PUT /api/preferences` - Update all preferences
+- `PUT /api/preferences/sources` - Update preferred sources only
+- `PUT /api/preferences/categories` - Update preferred categories only
+- `PUT /api/preferences/authors` - Update preferred authors only
 
 ---
 
