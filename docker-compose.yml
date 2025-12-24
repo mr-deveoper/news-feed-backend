@@ -1,0 +1,112 @@
+services:
+  # Laravel Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: news-feed-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    environment:
+      - DB_HOST=mysql
+      - DB_DATABASE=${DB_DATABASE:-news_feed}
+      - DB_USERNAME=${DB_USERNAME:-news_user}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - REDIS_HOST=redis
+    networks:
+      - news-feed-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # Nginx Service
+  nginx:
+    image: nginx:alpine
+    container_name: news-feed-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - news-feed-network
+    depends_on:
+      - app
+
+  # MySQL Service
+  mysql:
+    image: mysql:8.0
+    container_name: news-feed-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-news_feed}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_USER: ${DB_USERNAME:-news_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - news-feed-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Redis Service
+  redis:
+    image: redis:alpine
+    container_name: news-feed-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - news-feed-network
+
+  # Queue Worker
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: news-feed-queue
+    restart: unless-stopped
+    command: php artisan queue:work --tries=3
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - news-feed-network
+    depends_on:
+      - mysql
+      - redis
+
+  # Scheduler
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: news-feed-scheduler
+    restart: unless-stopped
+    command: php artisan schedule:work
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - news-feed-network
+    depends_on:
+      - mysql
+      - redis
+
+networks:
+  news-feed-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+
