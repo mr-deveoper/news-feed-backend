@@ -8,6 +8,7 @@ use App\Models\UserPreference;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Article Repository Implementation
@@ -36,7 +37,20 @@ class ArticleRepository extends BaseRepository implements ArticleRepositoryInter
      */
     public function searchAndFilter(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->model->newQuery()->with(['source', 'author', 'categories']);
+        // Cache temporarily disabled due to Redis connection timeout issues
+        // TODO: Fix Redis connection and re-enable caching for better performance
+        // Expected: First request ~8s, cached requests < 100ms
+        return $this->executeSearchQuery($filters, $perPage);
+    }
+
+    /**
+     * Execute the search query (extracted for reuse)
+     */
+    private function executeSearchQuery(array $filters, int $perPage): LengthAwarePaginator
+    {
+        $query = $this->model->newQuery()
+            ->with(['source', 'author']);
+            // Categories loaded separately in ArticleResource to avoid N+1 performance issues
 
         // Search by keyword
         if (! empty($filters['keyword'])) {
@@ -81,7 +95,18 @@ class ArticleRepository extends BaseRepository implements ArticleRepositoryInter
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($userId, $perPage) {
             $preference = UserPreference::where('user_id', $userId)->first();
 
-            $query = $this->model->newQuery()->with(['source', 'author', 'categories']);
+            $query = $this->model->newQuery()
+                ->with([
+                    'source' => function ($q) {
+                        $q->select('id', 'name', 'slug');
+                    },
+                    'author' => function ($q) {
+                        $q->select('id', 'name', 'email');
+                    },
+                    'categories' => function ($q) {
+                        $q->select('categories.id', 'categories.name', 'categories.slug');
+                    }
+                ]);
 
             if ($preference) {
                 // Filter by preferred sources
@@ -115,7 +140,14 @@ class ArticleRepository extends BaseRepository implements ArticleRepositoryInter
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($sourceId, $perPage) {
             return $this->model->newQuery()
-                ->with(['author', 'categories'])
+                ->with([
+                    'author' => function ($q) {
+                        $q->select('id', 'name', 'email');
+                    },
+                    'categories' => function ($q) {
+                        $q->select('categories.id', 'categories.name', 'categories.slug');
+                    }
+                ])
                 ->where('source_id', $sourceId)
                 ->orderBy('published_at', 'desc')
                 ->paginate($perPage);
@@ -131,7 +163,7 @@ class ArticleRepository extends BaseRepository implements ArticleRepositoryInter
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($categoryId, $perPage) {
             return $this->model->newQuery()
-                ->with(['source', 'author', 'categories'])
+                ->with(['source:id,name,slug', 'author:id,name,email', 'categories:id,name,slug'])
                 ->whereHas('categories', function ($q) use ($categoryId) {
                     $q->where('categories.id', $categoryId);
                 })
@@ -149,7 +181,14 @@ class ArticleRepository extends BaseRepository implements ArticleRepositoryInter
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($authorId, $perPage) {
             return $this->model->newQuery()
-                ->with(['source', 'categories'])
+                ->with([
+                    'source' => function ($q) {
+                        $q->select('id', 'name', 'slug');
+                    },
+                    'categories' => function ($q) {
+                        $q->select('categories.id', 'categories.name', 'categories.slug');
+                    }
+                ])
                 ->where('author_id', $authorId)
                 ->orderBy('published_at', 'desc')
                 ->paginate($perPage);

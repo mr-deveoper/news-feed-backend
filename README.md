@@ -103,6 +103,12 @@ docker-compose exec app php artisan test
 
 ---
 
+##  Postman Collection
+
+https://documenter.getpostman.com/view/31653907/2sBXVZnuNX  
+
+---
+
 ## 🎯 Docker Services
 
 Your `docker-compose up` command starts **6 containers**:

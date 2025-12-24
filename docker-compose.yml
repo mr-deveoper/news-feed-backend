@@ -45,18 +45,19 @@ services:
     container_name: news-feed-mysql
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: ${DB_DATABASE:-news_feed}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
-      MYSQL_USER: ${DB_USERNAME:-news_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_DATABASE: news_feed
+      MYSQL_ROOT_PASSWORD: root_secret
+      MYSQL_USER: news_user
+      MYSQL_PASSWORD: secret
     ports:
-      - "3306:3306"
+      - "3307:3306"  # Use 3307 externally to avoid conflict with WAMP
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - news-feed-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "news_user", "-psecret"]
       timeout: 20s
       retries: 10
 

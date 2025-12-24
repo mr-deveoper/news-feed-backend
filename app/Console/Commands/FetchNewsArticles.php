@@ -28,6 +28,8 @@ class FetchNewsArticles extends Command
 
     /**
      * Execute the console command.
+     *
+     * @return int Returns Command::SUCCESS on success
      */
     public function handle(NewsAggregatorService $newsAggregator): int
     {
